@@ -1,0 +1,47 @@
+{
+  "skill_name": "ai-code-reviewer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Hey, Copilot just wrote this React component for me and I want to make sure it's good before I push it. Can you review it?\n\n```tsx\nimport React, { useState, useEffect } from 'react';\n\nconst UserProfile = ({ userId }) => {\n  const [user, setUser] = useState(null);\n  const [posts, setPosts] = useState([]);\n\n  useEffect(() => {\n    fetch(`/api/users/${userId}`)\n      .then(res => res.json())\n      .then(data => setUser(data));\n\n    fetch(`/api/users/${userId}/posts`)\n      .then(res => res.json())\n      .then(data => setPosts(data));\n  }, []);\n\n  return (\n    <div>\n      <h1>{user.name}</h1>\n      <img src={user.avatar} />\n      <div onClick={() => window.location.href = '/settings'}>\n        Edit Profile\n      </div>\n      <ul>\n        {posts.map((post, i) => (\n          <li key={i}>{post.title}</li>\n        ))}\n      </ul>\n    </div>\n  );\n};\n\nexport default UserProfile;\n```",
+      "expected_output": "A structured review identifying: (1) Critical - missing loading/null check causing crash on user.name before data loads, (2) Critical - missing error handling on both fetches, (3) Critical - useEffect missing userId in deps, (4) Critical - potential memory leak (no abort controller), (5) Accessibility - img missing alt, div used for navigation instead of button/link, li keys using index, (6) Suggestions on TypeScript types. Review should follow the structured format with severity sections and a verdict.",
+      "files": [],
+      "assertions": [
+        "The review identifies the crash risk from accessing user.name before user is loaded (null reference)",
+        "The review flags missing error handling on the fetch calls",
+        "The review flags the empty dependency array [] missing userId",
+        "The review calls out the missing alt attribute on the img element",
+        "The review flags the div onClick for navigation instead of a button or anchor tag",
+        "The review flags array index used as key in the posts list",
+        "The review includes a verdict / ship-it assessment"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Copilot generated this custom hook for me to handle form state. Does it look right?\n\n```ts\nimport { useState, useEffect, useCallback } from 'react';\n\nfunction useForm(initialValues: Record<string, any>) {\n  const [values, setValues] = useState(initialValues);\n  const [errors, setErrors] = useState<Record<string, any>>({});\n  const [isDirty, setIsDirty] = useState(false);\n  const [isTouched, setIsTouched] = useState(false);\n  const [isSubmitting, setIsSubmitting] = useState(false);\n  const [submitCount, setSubmitCount] = useState(0);\n\n  useEffect(() => {\n    if (JSON.stringify(values) !== JSON.stringify(initialValues)) {\n      setIsDirty(true);\n    } else {\n      setIsDirty(false);\n    }\n  }, [values]);\n\n  const handleChange = useCallback((name: string, value: any) => {\n    setValues(prev => ({ ...prev, [name]: value }));\n    setIsTouched(true);\n  }, []);\n\n  const reset = useCallback(() => {\n    setValues(initialValues);\n    setErrors({});\n    setIsDirty(false);\n    setIsTouched(false);\n  }, []);\n\n  const handleSubmit = useCallback((onSubmit: (values: Record<string, any>) => Promise<void>) => {\n    return async (e: React.FormEvent) => {\n      e.preventDefault();\n      setIsSubmitting(true);\n      setSubmitCount(prev => prev + 1);\n      await onSubmit(values);\n      setIsSubmitting(false);\n    };\n  }, [values]);\n\n  return { values, errors, isDirty, isTouched, isSubmitting, submitCount, handleChange, reset, handleSubmit };\n}\n\nexport default useForm;\n```",
+      "expected_output": "Review should identify: (1) Warning - JSON.stringify comparison in useEffect is expensive and unreliable (reference equality issues, missing initialValues in deps), (2) Warning - reset() has stale closure on initialValues (missing in deps), (3) Warning - handleSubmit doesn't handle errors from onSubmit (no try/catch, isSubmitting stays true if throws), (4) Warning - isTouched tracks any field touched but not which field, limiting usefulness, (5) Suggestion - Record<string, any> types could be more precise with generics, (6) Suggestion - submitCount is rarely useful API surface",
+      "files": [],
+      "assertions": [
+        "The review flags the JSON.stringify comparison as problematic (expensive or dep array issue)",
+        "The review identifies that reset() will close over stale initialValues",
+        "The review flags missing error handling in handleSubmit (no try/catch)",
+        "The review mentions the any types as worth improving",
+        "The review includes a verdict / recommendation"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I asked Copilot to write a modal component and it gave me this. Looks fine to me visually but want a second opinion:\n\n```tsx\nimport React, { useState } from 'react';\n\nconst Modal = ({ isOpen, title, children, onClose }) => {\n  if (!isOpen) return null;\n\n  return (\n    <div\n      style={{\n        position: 'fixed',\n        top: 0,\n        left: 0,\n        width: '100%',\n        height: '100%',\n        background: 'rgba(0,0,0,0.5)',\n        display: 'flex',\n        alignItems: 'center',\n        justifyContent: 'center',\n        zIndex: 9999\n      }}\n      onClick={onClose}\n    >\n      <div\n        style={{\n          background: 'white',\n          borderRadius: '8px',\n          padding: '24px',\n          minWidth: '400px',\n          maxWidth: '90vw'\n        }}\n        onClick={e => e.stopPropagation()}\n      >\n        <div style={{ display: 'flex', justifyContent: 'space-between' }}>\n          <h2>{title}</h2>\n          <span onClick={onClose}>✕</span>\n        </div>\n        <div>{children}</div>\n      </div>\n    </div>\n  );\n};\n\nexport default Modal;\n```",
+      "expected_output": "Review should identify major accessibility problems: (1) Critical/Accessibility - no role='dialog' or aria-modal='true', (2) Critical/Accessibility - no focus trap (keyboard users can tab behind the modal), (3) Accessibility - close button is a span with onClick, not a button - not keyboard accessible, (4) Accessibility - no aria-labelledby connecting title to dialog, (5) Accessibility - Escape key not handled, (6) Warning - no focus management (focus should move into modal on open, return to trigger on close), (7) Suggestion - inline styles vs CSS classes",
+      "files": [],
+      "assertions": [
+        "The review identifies missing role='dialog' or aria-modal attribute",
+        "The review flags the lack of focus trapping",
+        "The review flags the span close button as inaccessible (not a button element)",
+        "The review mentions Escape key handling as missing",
+        "The review mentions focus management (returning focus on close)",
+        "The review includes a verdict noting this needs accessibility fixes before shipping"
+      ]
+    }
+  ]
+}
