@@ -27,6 +27,29 @@ The goal is a representative sample, not exhaustive coverage. For a typical repo
 
 ---
 
+## Resolving genuinely ambiguous dimensions
+
+Most dimensions will have a clear dominant pattern even from a small sample (e.g. 8 of 10 sampled components use the same data-fetching approach) — write that down, note the minority usage under "Known Mixed/Conflicting Patterns", and move on. Don't ask the user about these.
+
+A dimension is **genuinely ambiguous** only when, after sampling:
+- two (or more) patterns show up in roughly similar numbers, **and**
+- both appear in actively-maintained files (not "one pattern only in old/legacy-looking code that the other has clearly replaced").
+
+For each genuinely ambiguous dimension, ask the user which pattern should be treated as canonical going forward — a wrong silent guess here gets enforced on every future consistency check, so it's worth a quick question. Use `AskUserQuestion`:
+
+- One question per ambiguous dimension, batched into as few calls as possible (max 4 questions per call; if there are more than 4, see below).
+- `header`: short dimension name (e.g. "State mgmt", "Error handling", "Naming").
+- `question`: state both patterns with a citation each, e.g. "This repo has two state-management approaches in active use — Context API (`UserProvider.tsx:1-20`) and Zustand (`useCartStore.ts`). Which should new code follow?"
+- `options`: each pattern as an option, with its citation in the `description`, plus (where it makes sense) an option like "Both are fine — don't pick one" for dimensions where coexistence is reasonable (e.g. two acceptable test-assertion styles).
+
+Use the chosen pattern as the **Dominant pattern** for that dimension in `.claude/CONVENTIONS.md`. Record the non-chosen pattern under "Known Mixed/Conflicting Patterns" as the secondary/legacy pattern — existing usages of it aren't wrong, but new code should follow the chosen one.
+
+If there are more than ~4 genuinely ambiguous dimensions, ask about the highest-impact ones first (naming, state management, error handling, testing) in one batch, and resolve the rest with the tiebreaker from `SKILL.md` Step 0/2 (more recently-touched pattern wins) — note those under "Known Mixed/Conflicting Patterns" so the user can revisit them later if they disagree.
+
+**On refresh**, only ask about dimensions that are newly ambiguous or were never resolved — don't re-ask about ones the user already settled. If a new sample suggests the user's earlier choice has since fallen out of use entirely, tell them what you found and ask whether to update the baseline rather than silently changing it.
+
+---
+
 ## `.claude/CONVENTIONS.md` template
 
 Write the file using this structure. Keep each dimension's entry short — a stated pattern plus 1-3 citations, not a full essay.
@@ -83,7 +106,7 @@ Write the file using this structure. Keep each dimension's entry short — a sta
 - [Where config/constants live, citations]
 
 ## Known Mixed/Conflicting Patterns
-- [Any dimension where the repo isn't internally consistent — note both patterns and which is treated as dominant. Omit section if none found.]
+- [Any dimension where the repo isn't internally consistent — note both patterns, which is treated as dominant, and how that was decided (user-confirmed via AskUserQuestion / auto-detected majority / recency tiebreaker). Omit section if none found.]
 
 ## Not Yet Covered
 - [Dimensions/file-kinds with too little evidence to establish a pattern yet. Omit section if none.]

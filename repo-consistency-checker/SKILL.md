@@ -36,7 +36,10 @@ This skill maintains a single source of truth for "what this repo's conventions 
 
 1. Check whether `.claude/CONVENTIONS.md` exists in the repo.
 2. **If it exists** (and the user isn't asking for a refresh): read it. This is your baseline for Step 3 — for dimensions it covers, you don't need to re-derive conventions from sibling files. Note in the report that the baseline came from this file.
-3. **If it doesn't exist** (first run in this repo), or **the user explicitly asks to generate/refresh it**: run **Full Repo Profiling** per `references/conventions-baseline.md` to (re)write `.claude/CONVENTIONS.md`, then continue to Step 1 using the freshly generated baseline. Tell the user a baseline was created/refreshed and where, and that it's worth a quick skim/edit since it now drives every future consistency check.
+3. **If it doesn't exist** (first run in this repo), or **the user explicitly asks to generate/refresh it**: run **Full Repo Profiling** per `references/conventions-baseline.md` to (re)write `.claude/CONVENTIONS.md`:
+   - For most dimensions, a dominant pattern will be obvious from the sample — write it down and move on.
+   - If a dimension is **genuinely ambiguous** (roughly even split between two patterns that are both in active use — see `references/conventions-baseline.md` for the exact bar), don't guess. Ask the user which pattern should be canonical going forward via `AskUserQuestion`, batching all such dimensions into as few calls as possible (max 4 questions per call). Use the answer as the dominant pattern in `.claude/CONVENTIONS.md` and record the other as a known secondary/legacy pattern.
+   - Then continue to Step 1 using the freshly generated baseline. Tell the user a baseline was created/refreshed and where, and that it's worth a quick skim/edit since it now drives every future consistency check.
 
 ### Step 1 — Determine the scope of "new code"
 
