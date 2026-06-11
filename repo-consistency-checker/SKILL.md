@@ -1,7 +1,7 @@
 ---
 name: repo-consistency-checker
 description: >
-  Evaluates whether new or changed code matches the existing coding conventions, patterns, and architecture already established in this repository, and produces a consistency score. Use this skill whenever the user wants to check if their changes "fit" the codebase, asks for a "consistency score", "pattern consistency check", "does this match our conventions/style", "how consistent is this with the rest of the repo", or wants a diff, PR, or staged/uncommitted changes reviewed for adherence to existing patterns (naming, file structure, state management, styling, imports, TypeScript conventions, error handling, testing, etc.) rather than generic best practices. Especially useful for React/TypeScript/JS repos but applies to any codebase with established conventions.
+  Evaluates whether new or changed code matches the existing coding conventions, patterns, and architecture already established in this repository, and produces a consistency score. Use this skill whenever the user wants to check if their changes "fit" the codebase, asks for a "consistency score", "pattern consistency check", "does this match our conventions/style", "how consistent is this with the rest of the repo", or wants a diff, PR, or staged/uncommitted changes reviewed for adherence to existing patterns (naming conventions like camelCase/snake_case, file structure, state/dependency management, styling, imports, type conventions, error handling, testing, etc.) rather than generic best practices. Ships with detailed, language-specific guidance for JavaScript/TypeScript/React, Python, and Java repos — the same process applies to any other language/codebase with established conventions.
 ---
 
 # Repo Consistency Checker
@@ -36,10 +36,10 @@ Build a list of changed files. Separate **new files** from **modified files** fr
 
 This is the most important step, and the one it's tempting to skip. Do not judge the new code against generic "best practices" — judge it against what THIS repo already does.
 
-1. **Read project-level config first** — it tells you what's even possible and what's enforced:
-   - `package.json` — framework, UI library, state management, data-fetching, styling, test runner
-   - `tsconfig.json` — strictness, path aliases (`@/...`)
-   - `.eslintrc*`, `.prettierrc*`, `.editorconfig` — enforced style rules
+1. **Read project-level config first** — it tells you what's even possible and what's enforced. Check whichever of these exist:
+   - **JS/TS/React**: `package.json` (framework, UI library, state management, data-fetching, styling, test runner), `tsconfig.json` (strictness, path aliases), `.eslintrc*`, `.prettierrc*`
+   - **Python**: `pyproject.toml`/`setup.cfg`/`requirements*.txt` (framework, dependencies), `.flake8`/`ruff.toml`/`mypy.ini`/`pylintrc` (enforced style and typing rules)
+   - **Java**: `pom.xml`/`build.gradle*` (framework, dependencies, build plugins), `checkstyle.xml`/`.editorconfig` (enforced style rules)
 2. **For each changed file, find 2-4 sibling files of the same kind** that were NOT changed in this diff:
    - New component → find other components in the same folder or `components/`
    - New hook → find other hooks in `hooks/`
@@ -70,7 +70,7 @@ Use the **Output Format** below.
 
 ## Dimensions to evaluate
 
-See `references/convention-dimensions.md` for the full checklist (naming, file/folder layout, component structure, imports, state management, styling, TypeScript conventions, async/error handling, testing, comments, and linting).
+See `references/convention-dimensions.md` for the full 13-dimension checklist (naming, file/folder layout, code/module/class structure, imports & dependencies, state/dependency/resource management, styling, type system conventions, async/error handling, testing, comments, linting/formatting, framework/architectural conventions, and constants/config). Each dimension includes JS/TS/React, Python, and Java specifics.
 
 ## Scoring
 
@@ -94,14 +94,17 @@ See `references/scoring-rubric.md` for the per-dimension scoring scale, weightin
 |---|---|---|---|
 | Naming conventions | x/10 | | ... |
 | File & folder structure | x/10 | | ... |
-| Component/module structure | x/10 | | ... |
-| Imports | x/10 | | ... |
-| State management | x/10 | | ... |
-| Styling | x/10 | | ... |
-| TypeScript conventions | x/10 | | ... |
+| Code/module/class structure | x/10 | | ... |
+| Imports & dependencies | x/10 | | ... |
+| State / dependency & resource management | x/10 | | ... |
+| Styling / presentation (UI only) | x/10 | | ... |
+| Type system conventions | x/10 | | ... |
 | Async / error handling | x/10 | | ... |
 | Testing conventions | x/10 | | ... |
 | Comments & docs | x/10 | | ... |
+| Linting / formatting | x/10 | | ... |
+| Framework & architectural conventions | x/10 | | ... |
+| Constants / config values | x/10 | | ... |
 
 ## ✅ Consistent With Existing Patterns
 - [What the new code does the same way as the rest of the repo, with citations]
@@ -128,6 +131,7 @@ See `references/scoring-rubric.md` for the per-dimension scoring scale, weightin
 
 ## Tone and approach
 
+- **Never let naming-convention deviations get summarized away.** A camelCase function in an otherwise snake_case Python file, a snake_case parameter in an otherwise camelCase Java file, a kebab-case file next to PascalCase ones — these are cheap to fix, easy to miss, and one of the most common AI-introduced inconsistencies. List every one you find with a file:line citation, even if the overall score is high and they only land in "Minor Deviations".
 - Cite real file:line evidence on both sides of every claim — this report is only useful if it's verifiable.
 - Don't penalize the new code for not following a "best practice" the rest of the repo also doesn't follow — that's out of scope for this skill.
 - Be proportionate: a single new helper function with a slightly different naming style is a minor deviation, not a major one. Reserve "Major Inconsistency" for things that introduce a parallel pattern/dependency for something the repo already has a way of doing.
