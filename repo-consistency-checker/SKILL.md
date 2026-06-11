@@ -94,6 +94,10 @@ See `references/scoring-rubric.md` for the per-dimension scoring scale, weightin
 
 See `references/conventions-baseline.md` for: how to efficiently sample a whole repo (including monorepos) without reading every file, the `.claude/CONVENTIONS.md` template to write, and how to handle refreshes without clobbering manual edits.
 
+## Worked examples
+
+See `examples/sample-conventions.md` (a filled-out `.claude/CONVENTIONS.md` for a fictional React/TS repo, including a user-resolved mixed pattern and a Target Convention) and `examples/sample-report.md` (a consistency report for a diff checked against that baseline). Match their level of specificity and citation density.
+
 ---
 
 ## Output Format
