@@ -50,6 +50,33 @@ If there are more than ~4 genuinely ambiguous dimensions, ask about the highest-
 
 ---
 
+## Target Conventions (aspirational patterns)
+
+Sometimes the convention the team *wants* isn't the one the code *has* — they're starting a migration, tightening standards, or adopting a new library, and they want the checker to push new code toward the target rather than the status quo.
+
+**When to offer it:** as the last step of baseline generation (after ambiguity resolution, before writing the file), ask once via `AskUserQuestion`:
+
+- `header`: "New patterns"
+- `question`: e.g. "The baseline above describes what the code currently does. Do you want to declare any *target* conventions — patterns new code should follow even though the existing code doesn't yet?"
+- `options`: "No — current code is the standard (Recommended)" first (most repos just want the status quo enforced), plus an option like "Yes — I'll describe them", letting the user type specifics via the built-in "Other"/notes input.
+
+**When the user volunteers one** ("add a new pattern: all new API calls go through `api/client.ts`"), at any time — not just during generation — confirm before recording it, via `AskUserQuestion` if anything is unclear:
+1. The exact rule (what new code must do, what it must stop doing).
+2. The scope (which dimension(s) it affects; new code only, or also flagging old code when touched?).
+3. Whether it *replaces* an existing baseline entry (a migration) or is *net-new* (no existing pattern for this concern).
+
+Then append it to the **Target Conventions** section of `.claude/CONVENTIONS.md` — a targeted edit, not a full regeneration.
+
+**How checks treat target conventions (Step 3 / scoring):**
+- New/changed code is scored against the **target**, not the legacy pattern it replaces. Code following the target pattern is *consistent*, even if 90% of the repo still does it the old way.
+- New code that follows the *legacy* pattern instead of the target is a deviation — usually ⚠️ Minor ("repo is mid-migration; new code should use X per Target Conventions") unless the team marked the rule as strict, then 🔴 Major.
+- Cite the Target Conventions entry as the baseline evidence (there may be no file:line in the code yet — that's expected; cite `.claude/CONVENTIONS.md § Target Conventions` and note it's user-declared).
+- Don't retroactively penalize untouched legacy code, and don't suggest drive-by migrations beyond the diff under review.
+
+**On refresh:** preserve the Target Conventions section verbatim — it's user-declared intent, not sampled fact, so resampling can't invalidate it. If sampling shows a target has now become the dominant actual pattern, tell the user and offer to "graduate" it into the main baseline section for that dimension.
+
+---
+
 ## `.claude/CONVENTIONS.md` template
 
 Write the file using this structure. Keep each dimension's entry short — a stated pattern plus 1-3 citations, not a full essay.
@@ -107,6 +134,9 @@ Write the file using this structure. Keep each dimension's entry short — a sta
 
 ## Known Mixed/Conflicting Patterns
 - [Any dimension where the repo isn't internally consistent — note both patterns, which is treated as dominant, and how that was decided (user-confirmed via AskUserQuestion / auto-detected majority / recency tiebreaker). Omit section if none found.]
+
+## Target Conventions (aspirational)
+- [User-declared patterns that new code must follow even though existing code doesn't yet. For each: the rule, the dimension(s) it affects, what it replaces (if a migration), strictness (minor vs major deviation if not followed), and date declared. Omit section if none.]
 
 ## Not Yet Covered
 - [Dimensions/file-kinds with too little evidence to establish a pattern yet. Omit section if none.]
