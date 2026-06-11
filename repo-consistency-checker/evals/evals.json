@@ -1,0 +1,43 @@
+{
+  "skill_name": "repo-consistency-checker",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Our hooks always look like this. Existing `src/hooks/useToggle.ts`:\n\n```ts\nimport { useState, useCallback } from 'react';\n\nexport function useToggle(initial = false) {\n  const [value, setValue] = useState(initial);\n  const toggle = useCallback(() => setValue(v => !v), []);\n  return { value, toggle, setValue };\n}\n```\n\nExisting `src/hooks/useCounter.ts`:\n\n```ts\nimport { useState, useCallback } from 'react';\n\nexport function useCounter(initial = 0) {\n  const [count, setCount] = useState(initial);\n  const increment = useCallback(() => setCount(c => c + 1), []);\n  const decrement = useCallback(() => setCount(c => c - 1), []);\n  return { count, increment, decrement, setCount };\n}\n```\n\nI just added `src/hooks/usePrevious.ts`:\n\n```ts\nimport { useRef, useEffect } from 'react';\n\nexport function usePrevious<T>(value: T): T | undefined {\n  const ref = useRef<T>();\n  useEffect(() => {\n    ref.current = value;\n  });\n  return ref.current;\n}\n```\n\nCan you give this a consistency score against our existing hooks?",
+      "expected_output": "A consistency report with a high overall score (roughly 85-100, 'Excellent' or 'Good'). Notes that file location (src/hooks/), naming (use* prefix matching filename), named export, and React hook usage all match the baseline. May note as a minor point that this hook returns a single value rather than an object like useToggle/useCounter, but should frame this as acceptable/standard for a usePrevious-style hook rather than a major inconsistency. Should include the consistency report structure with dimension table and a verdict.",
+      "files": [],
+      "assertions": [
+        "The report includes an overall consistency score out of 100 with a label",
+        "The report identifies that file location (src/hooks/) and naming convention (use* prefix, named export) match the existing hooks",
+        "Any difference in return shape (single value vs returned object) is treated as a minor note at most, not a major inconsistency",
+        "The overall verdict/summary indicates the new code is highly or largely consistent with the existing hooks"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Here's our existing component pattern. `src/components/Button.tsx`:\n\n```tsx\nimport styles from './Button.module.css';\n\ninterface ButtonProps {\n  label: string;\n  onClick: () => void;\n  variant: 'primary' | 'secondary';\n}\n\nexport function Button({ label, onClick, variant }: ButtonProps) {\n  return (\n    <button className={`${styles.button} ${styles[variant]}`} onClick={onClick}>\n      {label}\n    </button>\n  );\n}\n```\n\n`src/components/Card.tsx`:\n\n```tsx\nimport styles from './Card.module.css';\n\ninterface CardProps {\n  title: string;\n  children: React.ReactNode;\n}\n\nexport function Card({ title, children }: CardProps) {\n  return (\n    <div className={styles.card}>\n      <h3 className={styles.title}>{title}</h3>\n      {children}\n    </div>\n  );\n}\n```\n\n`package.json` dependencies only include `react`, `react-dom`, and `typescript` (no styled-components).\n\nI just added `src/components/Banner.tsx`:\n\n```tsx\nimport styled from 'styled-components';\n\nconst Wrapper = styled.div`\n  padding: 16px;\n  background: #fffae6;\n  border-radius: 8px;\n`;\n\nexport default function Banner(props: any) {\n  return (\n    <Wrapper>\n      <p>{props.message}</p>\n    </Wrapper>\n  );\n}\n```\n\nWhat's the consistency score for Banner.tsx against Button.tsx and Card.tsx?",
+      "expected_output": "A consistency report with a low-to-moderate overall score (roughly 25-50, 'Inconsistent' or 'Major drift'). Major inconsistencies should include: introducing styled-components as a new dependency/styling approach when the rest of the repo uses CSS Modules; default export instead of the named exports used by Button and Card; props typed as `any` instead of a typed `XxxProps` interface like ButtonProps/CardProps. Should cite file:line style evidence from both Banner.tsx and the baseline files.",
+      "files": [],
+      "assertions": [
+        "The report flags styled-components as a styling approach mismatch versus the CSS Modules used in Button.tsx and Card.tsx",
+        "The report flags that styled-components is not an existing dependency, i.e. introduces a new library for something the repo already handles",
+        "The report flags the default export in Banner.tsx as inconsistent with the named exports used by Button and Card",
+        "The report flags `props: any` as inconsistent with the typed ButtonProps/CardProps interfaces used in the baseline",
+        "The overall consistency score is low (below 50) reflecting multiple major deviations"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Our data-fetching pattern looks like this. `src/components/UserList.tsx`:\n\n```tsx\nimport { useQuery } from '@tanstack/react-query';\nimport { fetchUsers } from '../api/users';\n\nexport function UserList() {\n  const { data: users, isLoading, error } = useQuery({\n    queryKey: ['users'],\n    queryFn: fetchUsers,\n  });\n\n  if (isLoading) return <p>Loading...</p>;\n  if (error) return <p>Something went wrong.</p>;\n\n  return (\n    <ul>\n      {users?.map(user => (\n        <li key={user.id}>{user.name}</li>\n      ))}\n    </ul>\n  );\n}\n```\n\n`src/api/users.ts`:\n\n```ts\nexport async function fetchUsers() {\n  const res = await fetch('/api/users');\n  if (!res.ok) throw new Error('Failed to fetch users');\n  return res.json();\n}\n```\n\nI just added `src/components/OrderList.tsx`:\n\n```tsx\nimport { useState, useEffect } from 'react';\n\nexport function OrderList() {\n  const [orders, setOrders] = useState([]);\n\n  useEffect(() => {\n    fetch('/api/orders')\n      .then(res => res.json())\n      .then(data => setOrders(data));\n  }, []);\n\n  return (\n    <ul>\n      {orders.map((order, i) => (\n        <li key={i}>{order.label}</li>\n      ))}\n    </ul>\n  );\n}\n```\n\nGive me a consistency report comparing OrderList.tsx to the existing pattern.",
+      "expected_output": "A consistency report with a moderate-low overall score (roughly 35-60, 'Inconsistent' to 'Fair'), reflecting a mixed result: naming conventions, file location, and named export style are consistent with UserList.tsx, but the data-fetching/state-management dimension is a major inconsistency, since OrderList uses raw useEffect+fetch instead of useQuery, has no api/orders.ts equivalent to fetchUsers, has no error handling, and uses array index as key instead of an id like UserList does.",
+      "files": [],
+      "assertions": [
+        "The report identifies that the baseline uses React Query (useQuery) for data fetching while OrderList.tsx uses raw useEffect + fetch",
+        "The report notes the missing api/orders.ts-style fetch function analogous to fetchUsers in src/api/users.ts",
+        "The report notes the missing loading and error states present in the UserList.tsx baseline",
+        "The report notes that OrderList.tsx follows the baseline's naming, file location, and named-export conventions",
+        "The overall score reflects a mixed result rather than being uniformly excellent or uniformly at the bottom of the scale"
+      ]
+    }
+  ]
+}
