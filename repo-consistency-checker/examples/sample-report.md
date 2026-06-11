@@ -46,10 +46,12 @@ The component itself is well-shaped and typed, but the change introduces a secon
 
 ## Recommendations
 1. Replace the axios/`useEffect` block with a `useOrders` hook in `src/hooks/` wrapping a fetcher in `src/api/orders.ts`, following `useProducts.ts:6-10` — and drop the `axios` dependency.
-2. Move `orderApi.ts` → `src/api/orders.ts`; move the `Order` type to `src/types/order.ts`.
-3. Rename `IOrderHistoryProps` → `OrderHistoryProps` (as `type`), `user_id` → `userId`; switch to a named function declaration.
-4. Lift `"/api/v2/orders"` into `src/constants/api.ts`; replace `../../` imports with `@/`.
-5. Add `OrderHistory.test.tsx` (Target Convention); run `npm run lint -- --fix` for quotes/semicolons.
+2. 🔧 Move `orderApi.ts` → `src/api/orders.ts`; move the `Order` type to `src/types/order.ts`.
+3. 🔧 Rename `IOrderHistoryProps` → `OrderHistoryProps` (as `type`), `user_id` → `userId`; switch to a named function declaration.
+4. 🔧 Lift `"/api/v2/orders"` into `src/constants/api.ts`; replace `../../` imports with `@/`.
+5. Add `OrderHistory.test.tsx` (Target Convention); 🔧 run `npm run lint -- --fix` for quotes/semicolons.
+
+*Recommendations marked 🔧 are mechanical — say "apply the fixes" and they'll be applied to your working tree (unstaged, review via `git diff`). Item 1 is architectural and stays manual.*
 
 ## Baseline Maintenance
 None — `.claude/CONVENTIONS.md` covered every dimension; no contradictions with current code observed.

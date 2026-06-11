@@ -1,7 +1,7 @@
 ---
 name: repo-consistency-checker
 description: >
-  Evaluates whether new or changed code matches the existing coding conventions, patterns, and architecture already established in this repository, and produces a consistency score. On first use in a repo, profiles the whole codebase and writes a human-readable baseline doc (`.claude/CONVENTIONS.md`); subsequent runs compare new/changed code against that baseline (and can refresh it on request). Use this skill whenever the user wants to check if their changes "fit" the codebase, asks for a "consistency score", "pattern consistency check", "does this match our conventions/style", "how consistent is this with the rest of the repo", wants their codebase's conventions documented/profiled, or wants a diff, PR, or staged/uncommitted changes reviewed for adherence to existing patterns (naming conventions like camelCase/snake_case, file structure, state/dependency management, styling, imports, type conventions, error handling, testing, etc.) rather than generic best practices. Ships with detailed, language-specific guidance for JavaScript/TypeScript/React, Python, and Java repos — the same process applies to any other language/codebase with established conventions. Does not distinguish AI-generated from human-written code — it evaluates all new/changed code the same way.
+  Evaluates whether new or changed code matches the existing coding conventions, patterns, and architecture already established in this repository, and produces a consistency score. On first use in a repo, profiles the whole codebase and writes a human-readable baseline doc (`.claude/CONVENTIONS.md`); subsequent runs compare new/changed code against that baseline (and can refresh it on request). Use this skill whenever the user wants to check if their changes "fit" the codebase, asks for a "consistency score", "pattern consistency check", "does this match our conventions/style", "how consistent is this with the rest of the repo", wants their codebase's conventions documented/profiled, or wants a diff, PR, or staged/uncommitted changes reviewed for adherence to existing patterns (naming conventions like camelCase/snake_case, file structure, state/dependency management, styling, imports, type conventions, error handling, testing, etc.) rather than generic best practices. Ships with detailed, language-specific guidance for JavaScript/TypeScript/React, Python, and Java repos — the same process applies to any other language/codebase with established conventions. After the report, can optionally auto-apply the safe, mechanical fixes (renames, file moves, import style, lifted constants) to the working tree — so it also covers "check my changes and fix the inconsistencies". Does not distinguish AI-generated from human-written code — it evaluates all new/changed code the same way.
 ---
 
 # Repo Consistency Checker
@@ -80,6 +80,18 @@ Use `references/scoring-rubric.md` to score each applicable dimension and comput
 
 Use the **Output Format** below.
 
+### Step 6 — Offer to apply the safe fixes
+
+If the report contains deviations, offer to fix the **mechanical** ones automatically (via `AskUserQuestion`, or just do it if the user already asked to "check and fix"). Classify each recommendation first:
+
+- **Safe/mechanical — auto-fixable:** renames within the changed files (identifiers, props, files to match naming conventions), moving a new file to the conventional folder (updating its imports), switching import style to the repo's (`@/` alias, ordering), lifting magic strings/numbers to the conventional constants location, formatting (run the repo's own formatter/linter `--fix` if configured), adding the `I`-prefix-free type alias style, etc.
+- **Architectural — suggestions only:** anything that rewrites logic or swaps approach/dependency (e.g. raw `fetch` → react-query, Context → Zustand, restructuring a class). Leave these as recommendations unless the user explicitly asks for them — they need human judgment and testing.
+
+Rules when applying:
+- Touch **only the files already in the diff scope** — never drive-by-fix legacy files the dev didn't touch.
+- Apply to the working tree, **never commit** — the dev reviews via `git diff` and commits themselves.
+- After applying, re-run the repo's lint/typecheck (and tests if cheap) to confirm nothing broke; report what was applied, what was skipped and why, and what's left as manual recommendations.
+
 ---
 
 ## Dimensions to evaluate
@@ -139,7 +151,7 @@ See `examples/sample-conventions.md` (a filled-out `.claude/CONVENTIONS.md` for 
 - [New patterns/approaches/dependencies not used elsewhere for the same purpose — cite new code vs. baseline]
 
 ## Recommendations
-1. [Concrete, actionable — "use `useQuery` from `@tanstack/react-query` as in `UserList.tsx` instead of a raw `useEffect`/`fetch`"]
+1. [Concrete, actionable — "use `useQuery` from `@tanstack/react-query` as in `UserList.tsx` instead of a raw `useEffect`/`fetch`". Mark mechanical ones 🔧 — these can be auto-applied on request (Step 6).]
 2. ...
 
 ## Baseline Maintenance

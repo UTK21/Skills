@@ -15,6 +15,14 @@ For each dimension in `convention-dimensions.md` that applies to the files under
 
 Mark a dimension N/A rather than guessing — an inflated or deflated overall score from forcing irrelevant dimensions is worse than a shorter table.
 
+### Scoring against Target Conventions
+
+When `.claude/CONVENTIONS.md` declares a target convention for a dimension (a user-declared pattern the existing code doesn't follow yet — see `references/conventions-baseline.md`), the **target replaces the sampled baseline** for that dimension:
+
+- New code that follows the **target** scores as consistent (7-10) — do not dock points because most of the repo still does it the old way.
+- New code that follows the **legacy** pattern instead scores **4-6** by default (it matches code that exists, but not the declared direction), or **1-3** if the team marked the rule as strict.
+- Cite `.claude/CONVENTIONS.md § Target Conventions` as the baseline evidence — a code citation may not exist yet, and that's expected.
+
 ## Overall score
 
 ```
