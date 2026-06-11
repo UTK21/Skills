@@ -67,6 +67,21 @@
         "The report notes the absence of an OrderNotFoundException analogous to UserNotFoundException",
         "The overall consistency score is low, reflecting multiple naming and pattern deviations"
       ]
+    },
+    {
+      "id": 6,
+      "prompt": "This Python repo doesn't have a `.claude/CONVENTIONS.md` yet. Here are some representative existing files. `app/services/user_service.py`:\n\n```python\nfrom typing import Optional\n\nfrom app.models.user import User\nfrom app.repositories.user_repository import UserRepository\n\n\nclass UserNotFoundError(Exception):\n    def __init__(self, user_id: int) -> None:\n        super().__init__(f\"User {user_id} not found\")\n        self.user_id = user_id\n\n\nclass UserService:\n    def __init__(self, repository: UserRepository) -> None:\n        self._repository = repository\n\n    def get_user_by_id(self, user_id: int) -> Optional[User]:\n        return self._repository.find_by_id(user_id)\n\n    def deactivate_user(self, user_id: int) -> None:\n        user = self._repository.find_by_id(user_id)\n        if user is None:\n            raise UserNotFoundError(user_id)\n        user.is_active = False\n        self._repository.save(user)\n```\n\n`app/models/user.py`:\n\n```python\nfrom dataclasses import dataclass\n\n\n@dataclass\nclass User:\n    id: int\n    name: str\n    email: str\n    is_active: bool = True\n```\n\n`tests/services/test_user_service.py`:\n\n```python\nimport pytest\n\nfrom app.services.user_service import UserNotFoundError, UserService\n\n\ndef test_get_user_by_id_returns_none_when_missing(mocker):\n    repo = mocker.Mock()\n    repo.find_by_id.return_value = None\n    service = UserService(repo)\n\n    assert service.get_user_by_id(1) is None\n\n\ndef test_deactivate_user_raises_when_missing(mocker):\n    repo = mocker.Mock()\n    repo.find_by_id.return_value = None\n    service = UserService(repo)\n\n    with pytest.raises(UserNotFoundError):\n        service.deactivate_user(1)\n```\n\n`pyproject.toml` (relevant excerpt):\n\n```toml\n[tool.mypy]\ndisallow_untyped_defs = true\n\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\n```\n\nGenerate our `.claude/CONVENTIONS.md` baseline from these.",
+      "expected_output": "A `.claude/CONVENTIONS.md`-style document (per references/conventions-baseline.md template) that documents, with citations to the files above: snake_case naming for functions/methods/variables and PascalCase for classes/exceptions (UserService, UserNotFoundError), underscore-prefixed 'private' attributes (self._repository), full type-hint coverage including Optional (driven by mypy's disallow_untyped_defs), dataclasses for data models (User), a custom-exception pattern for domain errors (UserNotFoundError) rather than generic Exception, and pytest with mocker fixtures plus tests/ mirroring app/ with test_*.py naming. Should note it's a generated/living document intended as the baseline for future consistency checks, and should note dimensions with insufficient evidence (e.g. styling, framework/routing conventions) rather than guessing.",
+      "files": [],
+      "assertions": [
+        "The output is structured as a conventions baseline document with sections per dimension (e.g. naming, type system, testing) and a note that it's generated/living and used as a baseline for future checks",
+        "It documents snake_case for functions/methods/variables and PascalCase for classes/exceptions, citing UserService/get_user_by_id/UserNotFoundError as evidence",
+        "It documents the underscore-prefixed private-attribute convention (self._repository)",
+        "It documents full type-hint coverage including Optional, referencing the mypy disallow_untyped_defs setting",
+        "It documents the custom domain-exception pattern (UserNotFoundError) rather than generic Exception",
+        "It documents the testing convention: pytest with mocker, tests/ mirroring app/, test_*.py naming",
+        "It notes dataclasses as the convention for data models (User) and notes dimensions with insufficient evidence rather than fabricating them"
+      ]
     }
   ]
 }

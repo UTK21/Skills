@@ -4,6 +4,8 @@ For each dimension below: identify the dominant pattern in the EXISTING codebase
 
 Each dimension lists what to look for generally, plus specifics for the three "starter" stacks this skill ships with: **JS/TS/React**, **Python**, and **Java**. The same underlying questions apply to other languages too — adapt using the same logic (what does *this* repo already do for *this* concern?).
 
+This same checklist drives both directions of the skill: profiling a repo to write `.claude/CONVENTIONS.md` (see `references/conventions-baseline.md`), and comparing new/changed code against that baseline.
+
 ---
 
 ## 1. Naming conventions
