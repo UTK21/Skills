@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "Our hooks always look like this. Existing `src/hooks/useToggle.ts`:\n\n```ts\nimport { useState, useCallback } from 'react';\n\nexport function useToggle(initial = false) {\n  const [value, setValue] = useState(initial);\n  const toggle = useCallback(() => setValue(v => !v), []);\n  return { value, toggle, setValue };\n}\n```\n\nExisting `src/hooks/useCounter.ts`:\n\n```ts\nimport { useState, useCallback } from 'react';\n\nexport function useCounter(initial = 0) {\n  const [count, setCount] = useState(initial);\n  const increment = useCallback(() => setCount(c => c + 1), []);\n  const decrement = useCallback(() => setCount(c => c - 1), []);\n  return { count, increment, decrement, setCount };\n}\n```\n\nI just added `src/hooks/usePrevious.ts`:\n\n```ts\nimport { useRef, useEffect } from 'react';\n\nexport function usePrevious<T>(value: T): T | undefined {\n  const ref = useRef<T>();\n  useEffect(() => {\n    ref.current = value;\n  });\n  return ref.current;\n}\n```\n\nCan you give this a consistency score against our existing hooks?",
-      "expected_output": "A consistency report with a high overall score (roughly 85-100, 'Excellent' or 'Good'). Notes that file location (src/hooks/), naming (use* prefix matching filename), named export, and React hook usage all match the baseline. May note as a minor point that this hook returns a single value rather than an object like useToggle/useCounter, but should frame this as acceptable/standard for a usePrevious-style hook rather than a major inconsistency. Should include the consistency report structure with dimension table and a verdict.",
+      "expected_output": "A consistency report with a high overall score (roughly 85-100, 'Excellent' or 'Good'). Notes that file location (src/hooks/), naming (use* prefix matching filename), named export, and React hook usage all match the baseline. May note as a minor point that this hook returns a single value rather than an object like useToggle/useCounter, but should frame this as acceptable/standard for a usePrevious-style hook rather than a major inconsistency. Should include a consistency report with per-file findings and a verdict.",
       "files": [],
       "assertions": [
         "The report includes an overall consistency score out of 100 with a label",
@@ -66,46 +66,6 @@
         "The report flags the use of Optional.get() instead of orElseThrow with a custom exception, contrasting with UserService's use of UserNotFoundException",
         "The report notes the absence of an OrderNotFoundException analogous to UserNotFoundException",
         "The overall consistency score is low, reflecting multiple naming and pattern deviations"
-      ]
-    },
-    {
-      "id": 6,
-      "prompt": "This Python repo doesn't have a `.claude/CONVENTIONS.md` yet. Here are some representative existing files. `app/services/user_service.py`:\n\n```python\nfrom typing import Optional\n\nfrom app.models.user import User\nfrom app.repositories.user_repository import UserRepository\n\n\nclass UserNotFoundError(Exception):\n    def __init__(self, user_id: int) -> None:\n        super().__init__(f\"User {user_id} not found\")\n        self.user_id = user_id\n\n\nclass UserService:\n    def __init__(self, repository: UserRepository) -> None:\n        self._repository = repository\n\n    def get_user_by_id(self, user_id: int) -> Optional[User]:\n        return self._repository.find_by_id(user_id)\n\n    def deactivate_user(self, user_id: int) -> None:\n        user = self._repository.find_by_id(user_id)\n        if user is None:\n            raise UserNotFoundError(user_id)\n        user.is_active = False\n        self._repository.save(user)\n```\n\n`app/models/user.py`:\n\n```python\nfrom dataclasses import dataclass\n\n\n@dataclass\nclass User:\n    id: int\n    name: str\n    email: str\n    is_active: bool = True\n```\n\n`tests/services/test_user_service.py`:\n\n```python\nimport pytest\n\nfrom app.services.user_service import UserNotFoundError, UserService\n\n\ndef test_get_user_by_id_returns_none_when_missing(mocker):\n    repo = mocker.Mock()\n    repo.find_by_id.return_value = None\n    service = UserService(repo)\n\n    assert service.get_user_by_id(1) is None\n\n\ndef test_deactivate_user_raises_when_missing(mocker):\n    repo = mocker.Mock()\n    repo.find_by_id.return_value = None\n    service = UserService(repo)\n\n    with pytest.raises(UserNotFoundError):\n        service.deactivate_user(1)\n```\n\n`pyproject.toml` (relevant excerpt):\n\n```toml\n[tool.mypy]\ndisallow_untyped_defs = true\n\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\n```\n\nGenerate our `.claude/CONVENTIONS.md` baseline from these.",
-      "expected_output": "A `.claude/CONVENTIONS.md`-style document (per references/conventions-baseline.md template) that documents, with citations to the files above: snake_case naming for functions/methods/variables and PascalCase for classes/exceptions (UserService, UserNotFoundError), underscore-prefixed 'private' attributes (self._repository), full type-hint coverage including Optional (driven by mypy's disallow_untyped_defs), dataclasses for data models (User), a custom-exception pattern for domain errors (UserNotFoundError) rather than generic Exception, and pytest with mocker fixtures plus tests/ mirroring app/ with test_*.py naming. Should note it's a generated/living document intended as the baseline for future consistency checks, and should note dimensions with insufficient evidence (e.g. styling, framework/routing conventions) rather than guessing.",
-      "files": [],
-      "assertions": [
-        "The output is structured as a conventions baseline document with sections per dimension (e.g. naming, type system, testing) and a note that it's generated/living and used as a baseline for future checks",
-        "It documents snake_case for functions/methods/variables and PascalCase for classes/exceptions, citing UserService/get_user_by_id/UserNotFoundError as evidence",
-        "It documents the underscore-prefixed private-attribute convention (self._repository)",
-        "It documents full type-hint coverage including Optional, referencing the mypy disallow_untyped_defs setting",
-        "It documents the custom domain-exception pattern (UserNotFoundError) rather than generic Exception",
-        "It documents the testing convention: pytest with mocker, tests/ mirroring app/, test_*.py naming",
-        "It notes dataclasses as the convention for data models (User) and notes dimensions with insufficient evidence rather than fabricating them"
-      ]
-    },
-    {
-      "id": 7,
-      "prompt": "Our repo's `.claude/CONVENTIONS.md` includes:\n\n```markdown\n## 5. State / Dependency & Resource Management\n- HTTP calls go through the `requests` library wrapped in `app/http_client.py` (`app/http_client.py:8-20`)\n\n## Target Conventions (aspirational)\n- **All new HTTP calls must use `httpx` (async) via `app/async_client.py`, not `requests`.** Dimension: State/resource management. Replaces the `requests` pattern (migration in progress). Strictness: major deviation if not followed. Declared 2026-05-01.\n```\n\nMy new file `app/services/weather_service.py`:\n\n```python\nimport requests\n\nfrom app.http_client import get_session\n\n\ndef fetch_forecast(city: str) -> dict:\n    session = get_session()\n    response = session.get(f\"https://api.weather.example/v1/forecast?city={city}\")\n    response.raise_for_status()\n    return response.json()\n```\n\nCheck it for consistency.",
-      "expected_output": "A report that flags the use of `requests`/`app/http_client.py` as a deviation — not because it mismatches existing code (it matches it perfectly), but because the Target Conventions section declares httpx via app/async_client.py as the standard for NEW code, with strictness marked major. The state/resource-management dimension should score low (1-3 per the rubric's strict-target rule) and the finding should land in Major Inconsistencies, citing `.claude/CONVENTIONS.md § Target Conventions` as the baseline evidence. The recommendation should be to rewrite fetch_forecast as async using httpx via app/async_client.py. The report must NOT praise the code as consistent merely for matching the legacy requests pattern, and must not penalize untouched legacy files.",
-      "files": [],
-      "assertions": [
-        "The report flags the new code's use of requests as a deviation even though it matches the existing dominant code pattern",
-        "The finding is classified as a Major Inconsistency (not minor), because the target convention's strictness is marked major",
-        "The report cites the Target Conventions section of .claude/CONVENTIONS.md as the baseline evidence for the deviation",
-        "The recommendation is to use httpx via app/async_client.py for the new code",
-        "The report does not recommend retroactively migrating untouched legacy files as part of this diff"
-      ]
-    },
-    {
-      "id": 8,
-      "prompt": "Generate a conventions baseline for this repo. Sampling shows the styling dimension is split almost exactly in half: 6 components use CSS Modules (`Button.module.css`, `Card.module.css`, ... — most recently touched 2 weeks ago) and 6 components use styled-components (`Modal.tsx:5-12`, `Tooltip.tsx:4-9`, ... — most recently touched 1 week ago). Both sets are actively maintained; git history shows no migration trend in either direction. Every other dimension has a clear dominant pattern.",
-      "expected_output": "The skill should recognize the styling dimension as genuinely ambiguous (roughly even split, both patterns actively maintained, no recency trend to break the tie) and ask the user which pattern should be canonical — via AskUserQuestion with both patterns as options including their citations, and optionally a 'both are fine' option — rather than silently picking one. It should NOT ask about the other dimensions, which have clear dominant patterns. The chosen answer becomes the dominant pattern in .claude/CONVENTIONS.md with the other recorded under Known Mixed/Conflicting Patterns as user-confirmed.",
-      "files": [],
-      "assertions": [
-        "The response asks the user which styling pattern (CSS Modules vs styled-components) should be canonical instead of silently choosing one",
-        "The question presents both patterns with their file citations as options",
-        "The response does not ask the user about dimensions that have a clear dominant pattern",
-        "The response indicates the non-chosen pattern will be recorded under Known Mixed/Conflicting Patterns with the resolution marked as user-confirmed"
       ]
     }
   ]
