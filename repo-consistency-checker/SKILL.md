@@ -47,6 +47,8 @@ Work file by file. The baseline for a changed file is, in priority order:
 
 Do not read the whole repo. Read exactly what the changes make relevant.
 
+**Mechanical census first:** run `scripts/analyze_siblings.py <changed files...>` (stdlib-only Python, run from the repo root). For each changed `.py`/`.js`/`.ts`/`.tsx`/`.java` file it auto-discovers the same-folder siblings (newest-touched first via git), extracts identifiers/imports/exports with line numbers, and emits JSON listing naming-casing outliers and import/export-style outliers in the changed files versus the sibling majority. Use `--siblings a.py,b.py` to override discovery when better siblings live elsewhere. Treat its output as **leads, not verdicts**: verify each flagged line in the actual code before reporting it (the JS/Java extraction is regex-based and can miss or misread declarations), and remember it only covers the mechanical concerns — everything judgment-based in Step 3 (error shape, state management, layering, resource handling) you still read and compare yourself.
+
 ### Step 3 — Gather the rules around each change, and compare
 
 For each hunk in the diff, ask: **what practices are visible in the baseline for the things this change does?** Let the change itself tell you what to look at — every concern the changed lines touch, check how the file's own code and its siblings handle that exact concern:
