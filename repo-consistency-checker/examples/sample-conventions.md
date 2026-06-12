@@ -73,3 +73,7 @@
 
 ## Target Conventions (aspirational)
 - **All new components must have a co-located test file.** Dimension: Testing. Net-new rule (current coverage is ~60% of components). Strictness: minor deviation if missing. Declared 2026-06-11.
+
+## House Rules (always enforced)
+- **`useEffect` that sets up a subscription, interval/timeout, or event listener must return a cleanup function.** (Effects with nothing to tear down are exempt.) Dimension: Async/error handling. Primary enforcer: this skill. Strictness: major. Declared 2026-06-11.
+- **`useCallback`/`useMemo`/`useEffect` dependency arrays must include every prop/state value referenced inside — no artificially empty `[]`.** (An empty array is fine when the body references no reactive values.) Dimension: State management. Primary enforcer: `react-hooks/exhaustive-deps` (enabled in `eslint.config.js:31`) — skill reports violations under Linting. Strictness: major. Declared 2026-06-11.

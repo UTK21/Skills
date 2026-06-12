@@ -28,6 +28,7 @@ This skill maintains a single source of truth for "what this repo's conventions 
 - It's what every consistency check compares new code against, so checks are fast and consistent across runs instead of being re-derived from scratch each time.
 - It can go stale. If the user asks to "refresh"/"regenerate"/"rebuild the conventions baseline", or if you notice the doc clearly contradicts what the current codebase actually does, regenerate it (see **Generating & Refreshing the Baseline** below).
 - It can also contain **Target Conventions** — patterns the team has *decided* to adopt that the existing code doesn't follow yet (e.g. "new code uses Zustand, even though most of the repo is still Context API"). These are offered during baseline generation and can be added any time the user says something like "add a new convention/pattern: ..." — confirm the exact rule and scope via `AskUserQuestion`, then append it to the Target Conventions section (no full regeneration needed). Checks evaluate new code against the target, not the legacy code it's replacing.
+- And it can contain **House Rules** — always-enforced, lint-style rules checked on every diff regardless of what existing code does (e.g. "`useEffect` with a subscription/timer must return a cleanup function", "hook dependency arrays must include everything referenced — no artificially empty `[]`"). Declared by the user any time ("add a house rule: ..."); confirm the precise wording (including legitimate exceptions) before recording. See `references/conventions-baseline.md` § House Rules.
 
 ---
 
@@ -40,7 +41,7 @@ This skill maintains a single source of truth for "what this repo's conventions 
 3. **If it doesn't exist** (first run in this repo), or **the user explicitly asks to generate/refresh it**: run **Full Repo Profiling** per `references/conventions-baseline.md` to (re)write `.claude/CONVENTIONS.md`:
    - For most dimensions, a dominant pattern will be obvious from the sample — write it down and move on.
    - If a dimension is **genuinely ambiguous** (roughly even split between two patterns that are both in active use — see `references/conventions-baseline.md` for the exact bar), don't guess. Ask the user which pattern should be canonical going forward via `AskUserQuestion`, batching all such dimensions into as few calls as possible (max 4 questions per call). Use the answer as the dominant pattern in `.claude/CONVENTIONS.md` and record the other as a known secondary/legacy pattern.
-   - Before writing the file, ask the user (one extra `AskUserQuestion`) whether they want to declare any **target conventions** — patterns that don't exist in the code yet (or that differ from what the code currently does) but that the team wants new code to follow going forward (e.g. "start using Zustand instead of Context", "all new code must have type hints", "new components use Tailwind"). If yes, capture them in the **Target Conventions (aspirational)** section of `.claude/CONVENTIONS.md` — see `references/conventions-baseline.md` for how these are recorded and how checks score against them.
+   - Before writing the file, ask the user (one extra `AskUserQuestion`) whether they want to declare any **target conventions** — patterns that don't exist in the code yet (or that differ from what the code currently does) but that the team wants new code to follow going forward (e.g. "start using Zustand instead of Context", "all new code must have type hints", "new components use Tailwind") — and/or any **house rules** — always-enforced lint-style rules (e.g. "useEffect with subscriptions must return cleanup"). If yes, capture them in the **Target Conventions (aspirational)** and **House Rules** sections of `.claude/CONVENTIONS.md` — see `references/conventions-baseline.md` for how these are recorded and how checks score against them.
    - Then continue to Step 1 using the freshly generated baseline. Tell the user a baseline was created/refreshed and where, and that it's worth a quick skim/edit since it now drives every future consistency check.
 
 ### Step 1 — Determine the scope of "new code"
@@ -71,6 +72,8 @@ Walk through `references/convention-dimensions.md`. For each dimension that appl
 Skip dimensions that genuinely don't apply (e.g. styling conventions for a pure utility module) and say so briefly rather than padding the report.
 
 If `.claude/CONVENTIONS.md` has a **Target Conventions** section, those entries override the sampled baseline for the dimensions they cover: new code following the target is consistent (even if most of the repo doesn't yet), and new code following the legacy pattern instead is a deviation — see `references/conventions-baseline.md` for scoring details.
+
+If it has a **House Rules** section, check every rule against the changed files (under the dimension each rule belongs to). Violations score like explicit enforced conventions (0-3 per the rubric) and default to 🔴 Major Inconsistencies. Where a rule names a lint rule as its primary enforcer, report violations under Dimension 11 instead of re-deriving them manually.
 
 ### Step 4 — Score
 

@@ -77,6 +77,25 @@ Then append it to the **Target Conventions** section of `.claude/CONVENTIONS.md`
 
 ---
 
+## House Rules (always-enforced, lint-style rules)
+
+Target Conventions describe *pattern migrations* ("new code uses X instead of Y"). **House Rules** are different: specific, checkable rules the team wants enforced on all new/changed code regardless of what existing code does — closer to a lint rule than a pattern. Examples:
+
+- "`useEffect` that sets up a subscription, timer, or event listener must return a cleanup function."
+- "`useCallback`/`useMemo` dependency arrays must include every prop/state value referenced inside — no artificially empty `[]`."
+- "No `console.log` outside `src/dev/`."
+- "Every exported function in `src/api/` must have an explicit return type."
+
+How they work:
+
+- **Capture:** users declare them ("add a house rule: ...") at any time, or during baseline generation alongside the Target Conventions question. Before recording one, restate it precisely and confirm — vague rules produce noisy checks. If a stated rule has legitimate exceptions (e.g. an empty deps array is *correct* for a callback that references no props/state), encode the precise version and note the exception in the rule text.
+- **Prefer the linter when possible:** if a rule is mechanically checkable by the repo's existing tooling (e.g. `react-hooks/exhaustive-deps` covers dependency arrays), recommend enabling that rule too and record in the House Rule that the linter is the primary enforcer — the skill then just reports violations under Dimension 11. Rules the linter can't express (judgment-based ones) are checked by the skill directly.
+- **Checking:** during Step 3, evaluate each House Rule against the changed files only, under whichever dimension it belongs to (note the rule ID/text in the finding). Violations score like an explicit enforced convention — 0-3 on that dimension per the rubric — and land in 🔴 Major Inconsistencies unless the rule declares a lower strictness.
+- **No retroactive sweeps:** like everything else in this skill, House Rules apply to the diff under review, not untouched legacy code.
+- **On refresh:** preserve the House Rules section verbatim, same as Target Conventions.
+
+---
+
 ## `.claude/CONVENTIONS.md` template
 
 Write the file using this structure. Keep each dimension's entry short — a stated pattern plus 1-3 citations, not a full essay.
@@ -137,6 +156,9 @@ Write the file using this structure. Keep each dimension's entry short — a sta
 
 ## Target Conventions (aspirational)
 - [User-declared patterns that new code must follow even though existing code doesn't yet. For each: the rule, the dimension(s) it affects, what it replaces (if a migration), strictness (minor vs major deviation if not followed), and date declared. Omit section if none.]
+
+## House Rules (always enforced)
+- [User-declared lint-style rules checked on every diff regardless of existing code. For each: precise rule text (including legitimate exceptions), the dimension it's checked under, primary enforcer (this skill, or a named lint rule), strictness, and date declared. Omit section if none.]
 
 ## Not Yet Covered
 - [Dimensions/file-kinds with too little evidence to establish a pattern yet. Omit section if none.]

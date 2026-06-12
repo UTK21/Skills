@@ -23,6 +23,10 @@ When `.claude/CONVENTIONS.md` declares a target convention for a dimension (a us
 - New code that follows the **legacy** pattern instead scores **4-6** by default (it matches code that exists, but not the declared direction), or **1-3** if the team marked the rule as strict.
 - Cite `.claude/CONVENTIONS.md § Target Conventions` as the baseline evidence — a code citation may not exist yet, and that's expected.
 
+### Scoring House Rules violations
+
+A violation of a **House Rule** (always-enforced lint-style rule — see `references/conventions-baseline.md`) counts as contradicting an explicit, enforced convention: score the affected dimension **0-3** regardless of what surrounding code does, unless the rule itself declares a lower strictness. Cite both the rule text in `.claude/CONVENTIONS.md § House Rules` and the violating line.
+
 ## Overall score
 
 ```

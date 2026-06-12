@@ -100,6 +100,7 @@ This same checklist drives both directions of the skill: profiling a repo to wri
   - **Shared/global state**: Context, Redux/Redux Toolkit, Zustand, Jotai, Recoil, MobX — is the new code introducing a *different* mechanism than the repo already uses for cross-component state?
   - **Server/remote state**: React Query / SWR / RTK Query / Apollo vs. raw `useEffect` + `fetch`/`axios` — one of the most common AI-introduced mismatches.
   - **Derived state**: does the new code store derived values in state and sync via `useEffect` where the rest of the repo just computes them inline?
+  - **Hooks hygiene** (check against the repo's lint config and House Rules in `.claude/CONVENTIONS.md`): dependency arrays on `useEffect`/`useCallback`/`useMemo` must include every prop/state value referenced inside — an artificially empty `[]` on a callback that reads props/state is a stale-closure bug and a deviation if the repo enforces `react-hooks/exhaustive-deps`. Memoization usage (`useCallback`/`useMemo`/`memo`) should match sibling components — neither blanket-memoizing in a repo that doesn't, nor skipping it where siblings consistently memoize handlers passed to children.
 
 - **Python**:
   - Dependency injection style — constructor parameters (manual DI) vs a framework mechanism (`fastapi.Depends`, `dependency_injector`, Django apps registry) — match what sibling classes/handlers do.
@@ -144,7 +145,7 @@ Mark N/A for code where this doesn't apply (e.g. a pure algorithm/utility module
   - Where do API calls live — inline in components, in hooks, or a dedicated `api`/`services` layer? New fetch logic should land in the same place similar existing logic does.
   - Error handling shape — try/catch + error state, error boundaries, toast/notification system, or a query library's `error` field — match the established shape.
   - Loading states — spinner, skeleton, boolean flag, or `isLoading` from a query library — match sibling components.
-  - Cleanup/cancellation — `AbortController` or cleanup functions for subscriptions/timers, if siblings use them.
+  - Cleanup/cancellation — a `useEffect` that creates a subscription, interval/timeout, event listener, or in-flight request must return a cleanup function (unsubscribe, `clearInterval`/`clearTimeout`, `removeEventListener`, `AbortController.abort()`). Flag missing cleanup when siblings clean up, or when the repo's House Rules require it; an effect with nothing to tear down doesn't need one.
 
 - **Python**:
   - Exception strategy — does the repo define custom exception classes (e.g. `UserNotFoundError(Exception)`) for domain errors? New code raising a bare `Exception("...")` or using a broad `except:`/`except Exception:` where siblings raise/catch specific custom exceptions is a deviation.
